@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container">
+    <h2>Order Summary</h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Item</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Total Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for order_item in order.items.all %}
+        <tr>
+            <th>{{ forloop.counter }}</th>
+            <td>{{ order_item.product.title }}</td>
+            <td>${{ order_item.product.price }}</td>
+            <td>{{ order_item.quantity }}</td>
+            <td>${{ order_item.get_total_item_price }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">Your cart is empty.</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="4"><b>Order Total</b></td>
+            <td><b>${{ order.get_total }}</b></td>
+        </tr>
+        <tr>
+            <td colspan="5">
+            <a class='btn btn-warning' href='/checkout/'>Proceed to checkout</a>
+            <a class='btn btn-primary' href='/'>Continue shopping</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+  </div>
+{% endblock %}
