@@ -21,6 +21,10 @@ from products import views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import checkout, order_confirmation
+from django.contrib.auth import views as auth_views
+from django.shortcuts import redirect
+def logout_redirect(request):
+    return redirect('index')
 def debug_urls(request):
     return HttpResponse("URL is working!")
 urlpatterns = [
@@ -37,5 +41,12 @@ urlpatterns = [
     path('remove_from_cart/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('checkout/', checkout, name='checkout'),
     path('order-confirmation/<int:order_id>/', order_confirmation, name='order_confirmation'),
-    path('products/', views.product_listing, name='product_list')
+    path('products/', views.product_listing, name='product_list'),
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', views.landing_page, name='index'),
+    path('accounts/login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('accounts/logout/', views.landing_page, name='index'),
+    path('logout_redirect/', logout_redirect, name='logout_redirect'),
+    path("register/", views.register, name="register"),
+    path('popular-products/', views.popular_products, name='popular_products')
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

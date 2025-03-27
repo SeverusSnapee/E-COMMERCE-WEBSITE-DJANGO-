@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2>You have successfully logged out</h2>
+    <p>Thank you for visiting! You can log in again or create a new account.</p>
+    <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+    <a href="{% url 'register' %}" class="btn btn-success ml-2">Sign Up</a>
+</div>
+{% endblock %}

@@ -6,7 +6,10 @@ from decimal import Decimal
 from .models import Order, OrderItem, Product
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from .forms import UserRegistrationForm
+from django.db.models import Count
 def cart_view(request):
     cart = request.session.get('cart', {})
     total = Decimal('0.00')  # Initialize total as a Decimal object
@@ -166,6 +169,28 @@ def cart(request):
 #         # Redirect to the order confirmation page
 #         # return redirect('order_confirmation', order_id=order.id)
 #         return render(request, 'order_confirmation.html', {'cart': cart, 'total_price': total_price, 'total_price_product': total_price_product})
+# def checkout(request):
+#     user = request.user
+#     cart = request.session.get('cart', {})
+
+#     if not cart:
+#         messages.error(request, "Your cart is empty!")
+#         return redirect("cart")
+
+#     order = Order.objects.create(user=user, ordered=True)
+
+#     for product_id, item in cart.items():
+#         product = get_object_or_404(Product, id=product_id)
+#         order_item = OrderItem.objects.create(
+#             order=order,  # Link OrderItem to Order
+#             product=product,
+#             quantity=item['quantity']
+#         )
+    
+#     # Clear cart after saving order
+#     request.session['cart'] = {}
+
+#     return redirect("order_confirmation", order_id=order.id)
 def checkout(request):
     user = request.user
     cart = request.session.get('cart', {})
@@ -178,8 +203,8 @@ def checkout(request):
 
     for product_id, item in cart.items():
         product = get_object_or_404(Product, id=product_id)
-        order_item = OrderItem.objects.create(
-            order=order,  # Link OrderItem to Order
+        OrderItem.objects.create(
+            order=order,  
             product=product,
             quantity=item['quantity']
         )
@@ -193,3 +218,42 @@ def checkout(request):
 def order_confirmation(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_confirmation.html', {'order': order})
+# def register(request):
+#     if request.method == "POST":
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()
+#             login(request, user)  # Log in the user after registration
+#             return redirect("home")  # Redirect to homepage or products page
+#     else:
+#         form = UserCreationForm()
+#     return render(request, "register.html", {"form": form})
+
+
+
+def register(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'Account created for {user.username}!')
+            return redirect('login')  # Redirect to login page after registration
+        else:
+            messages.error(request, 'There was an error in the registration form')
+    else:
+        form = UserRegistrationForm()
+
+    return render(request, 'register.html', {'form': form})
+def popular_products(request):
+    
+    popular_products = OrderItem.objects.values('product__id', 'product__name') \
+                                        .annotate(total_purchases=Count('product')) \
+                                        .order_by('-total_purchases')[:10]
+    
+    
+    popular_products = [
+        {'product': Product.objects.get(id=item['product__id']), 'total_purchases': item['total_purchases']}
+        for item in popular_products
+    ]
+    
+    return render(request, 'popular_products.html', {'popular_products': popular_products})
